@@ -13,25 +13,25 @@ const cors = require("cors");
 const path = require("path");
 
 dotenv.config();
-connectDB();
+// connectDB();
 
 const app = express();
 app.use(cors());
 app.use(express.json());
 
-app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
+// app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Swagger route
-app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+// app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Route
-app.use("/api/auth", authRoutes);
+// app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
-app.use("/api/product", productRoutes);
+// app.use("/api/product", productRoutes);
 
 // Middleware phục vụ file tĩnh (xem ảnh)
 
-app.use("/api/upload", uploadRoutes);
+// app.use("/api/upload", uploadRoutes);
 app.use(errorHandler); // luôn đặt cuối cùng
 
 const PORT = process.env.PORT || 3000;

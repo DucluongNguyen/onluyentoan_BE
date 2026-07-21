@@ -10,16 +10,21 @@ const generateToken = (id) => {
 
 // @route   POST /api/auth/register
 exports.register = async (req, res) => {
+  // Bỏ qua "role" nếu client gửi lên — luôn tạo tài khoản với quyền "user"
+  // để tránh tự phong admin qua API đăng ký công khai.
   const { name, email, password } = req.body;
 
   try {
     const exists = await User.findOne({ email });
     if (exists) return res.status(400).json({ message: "Email đã tồn tại" });
 
-    const user = await User.create({ name, email, password });
+    const user = await User.create({ name, email, password, role: "user" });
     const token = generateToken(user._id);
 
-    res.status(201).json({ user, token });
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.status(201).json({ user: userObj, token });
   } catch (err) {
     res.status(400).json({ error: err.message });
   }
@@ -36,8 +41,17 @@ exports.login = async (req, res) => {
     }
 
     const token = generateToken(user._id);
-    res.json({ user, token });
+    const userObj = user.toObject();
+    delete userObj.password;
+
+    res.json({ user: userObj, token });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+};
+
+// @route   GET /api/auth/me
+exports.getMe = async (req, res) => {
+  // req.user đã được middleware `protect` gán sẵn (không có password)
+  res.json({ user: req.user });
 };

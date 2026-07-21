@@ -1,9 +1,11 @@
 const express = require("express");
 const router = express.Router();
-const { register, login } = require("../controllers/auth.controller");
+const { register, login, getMe } = require("../controllers/auth.controller");
+const { protect } = require("../middlewares/auth.middleware");
 
 router.post("/register", register);
 router.post("/login", login);
+router.get("/me", protect, getMe);
 
 /**
  * @swagger
@@ -87,6 +89,21 @@ router.post("/login", login);
  *                       type: string
  *       401:
  *         description: Email hoặc mật khẩu không đúng
+ */
+
+/**
+ * @swagger
+ * /auth/me:
+ *   get:
+ *     summary: Lấy thông tin người dùng hiện tại (kèm role)
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Thông tin người dùng
+ *       401:
+ *         description: Chưa đăng nhập hoặc token không hợp lệ
  */
 
 module.exports = router;

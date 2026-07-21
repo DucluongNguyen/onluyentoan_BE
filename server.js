@@ -5,6 +5,8 @@ const userRoutes = require("./routes/user.route");
 const authRoutes = require("./routes/auth.route");
 const productRoutes = require("./routes/product.route");
 const uploadRoutes = require("./routes/upload.route");
+const categoryRoutes = require("./routes/category.route");
+const resourceRoutes = require("./routes/resource.route");
 const swaggerUi = require("swagger-ui-express");
 const swaggerSpec = require("./swagger"); // file vừa tạo
 const errorHandler = require("./middlewares/error.middleware");
@@ -13,7 +15,7 @@ const cors = require("cors");
 const path = require("path");
 
 dotenv.config();
-// connectDB();
+connectDB();
 
 const app = express();
 app.use(cors());
@@ -22,12 +24,16 @@ app.use(express.json());
 // app.use("/api/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Swagger route
-// app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+app.use("/api/swagger", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Route
-// app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 app.use("/api/users", userRoutes);
 // app.use("/api/product", productRoutes);
+
+// Tài nguyên: danh mục dạng cây + upload/tải file (upload chỉ admin, xem/tải cần đăng nhập)
+app.use("/api/categories", categoryRoutes);
+app.use("/api/resources", resourceRoutes);
 
 // Middleware phục vụ file tĩnh (xem ảnh)
 

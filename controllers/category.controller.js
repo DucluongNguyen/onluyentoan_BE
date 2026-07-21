@@ -9,7 +9,12 @@ const { successResponse, errorResponse } = require("../utils/response");
 function buildTree(categories, parentId = null) {
   return categories
     .filter((cat) => String(cat.parent || "") === String(parentId || ""))
-    .sort((a, b) => a.order - b.order || a.name.localeCompare(b.name))
+    // Sắp theo thời gian tạo (cũ nhất -> mới nhất). Vẫn ưu tiên "order" nếu
+    // admin có set thủ công, mặc định order = 0 cho mọi danh mục nên hiện tại
+    // thực chất luôn rơi về so sánh createdAt.
+    .sort(
+      (a, b) => a.order - b.order || new Date(a.createdAt) - new Date(b.createdAt)
+    )
     .map((cat) => ({
       id: String(cat._id),
       name: cat.name,

@@ -3,6 +3,7 @@ const router = express.Router();
 const {
   uploadResource,
   getResourcesByCategory,
+  getResourceById,
   downloadResource,
   viewResource,
   deleteResource,
@@ -15,6 +16,7 @@ const uploadResourceFile = require("../middlewares/resourceUpload.middleware");
 router.get("/", getResourcesByCategory);
 router.get("/:id/view", viewResource);
 router.get("/:id/download", downloadResource);
+router.get("/:id", getResourceById);
 
 // Upload / sửa / xoá: chỉ admin
 router.post(
@@ -84,9 +86,9 @@ router.delete("/:id", protect, restrictTo("admin"), deleteResource);
 
 /**
  * @swagger
- * /resources/{id}/view:
+ * /resources/{id}:
  *   get:
- *     summary: Xem PDF trực tiếp trên trình duyệt (inline, không tải về) — công khai
+ *     summary: Lấy metadata 1 tài nguyên (title, mimeType, fileName...) — công khai
  *     tags: [Resource]
  *     parameters:
  *       - in: path
@@ -96,9 +98,28 @@ router.delete("/:id", protect, restrictTo("admin"), deleteResource);
  *           type: string
  *     responses:
  *       200:
- *         description: Nội dung PDF (Content-Disposition inline)
+ *         description: Metadata tài nguyên
+ *       404:
+ *         description: Không tìm thấy tài nguyên
+ */
+
+/**
+ * @swagger
+ * /resources/{id}/view:
+ *   get:
+ *     summary: Xem trực tiếp trên trình duyệt (inline, không tải về) — PDF và .docx — công khai
+ *     tags: [Resource]
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: Nội dung file (Content-Disposition inline)
  *       400:
- *         description: Tài nguyên không phải PDF
+ *         description: Định dạng chưa hỗ trợ xem trực tiếp (VD .doc cũ)
  *       404:
  *         description: Không tìm thấy tài nguyên
  */

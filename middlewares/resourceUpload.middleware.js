@@ -23,15 +23,22 @@ const storage = multer.diskStorage({
   },
 });
 
-// Chỉ cho phép PDF — để có thể xem trực tiếp (preview) trên trình duyệt bằng
-// trình xem PDF gốc, thay vì phải tải nhiều loại file khác nhau.
-const ALLOWED_MIMETYPES = ["application/pdf"];
+// Cho phép PDF và Word (.doc/.docx). PDF xem trực tiếp bằng pdf.js, .docx xem
+// trực tiếp bằng mammoth (chuyển sang HTML ở client) — .doc (định dạng nhị
+// phân cũ) chỉ hỗ trợ tải về vì không có thư viện xem trực tiếp đáng tin cậy.
+const ALLOWED_MIMETYPES = [
+  "application/pdf",
+  "application/msword", // .doc
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+];
 
 const fileFilter = (req, file, cb) => {
   if (ALLOWED_MIMETYPES.includes(file.mimetype)) cb(null, true);
   else
     cb(
-      new Error("Định dạng file không được hỗ trợ. Chỉ chấp nhận file PDF."),
+      new Error(
+        "Định dạng file không được hỗ trợ. Chỉ chấp nhận file PDF hoặc Word (.doc, .docx)."
+      ),
       false
     );
 };

@@ -84,6 +84,28 @@ exports.getResourcesByCategory = async (req, res) => {
   }
 };
 
+// GET /api/resources/:id → Lấy metadata 1 tài nguyên (không kèm filePath vật
+// lý) — công khai. Trang xem (/tai-nguyen/xem/[id]) dùng cái này để biết
+// mimeType mà chọn cách render: PDF -> pdf.js, .docx -> mammoth, .doc cũ ->
+// không xem trực tiếp được, chỉ hiện nút tải về.
+exports.getResourceById = async (req, res) => {
+  try {
+    const resource = await Resource.findById(req.params.id).select(
+      "-filePath"
+    );
+    if (!resource) {
+      return errorResponse({
+        res,
+        message: "Không tìm thấy tài nguyên",
+        status: 404,
+      });
+    }
+    return successResponse({ res, data: resource });
+  } catch (err) {
+    return errorResponse({ res, message: err.message, status: 500 });
+  }
+};
+
 // GET /api/resources/:id/download → Tải file — cần đăng nhập (user hoặc admin)
 exports.downloadResource = async (req, res) => {
   try {
@@ -116,7 +138,16 @@ exports.downloadResource = async (req, res) => {
   }
 };
 
-// GET /api/resources/:id/view → Xem PDF trực tiếp trên trình duyệt (không tải về) — cần đăng nhập
+// Các mimeType được phép xem trực tiếp (không phải tải về) trên trình duyệt.
+// PDF -> pdf.js tự fetch binary qua URL này. .docx -> frontend fetch binary
+// qua URL này rồi dùng mammoth chuyển sang HTML. .doc (nhị phân cũ) KHÔNG nằm
+// trong danh sách này vì không có cách xem trực tiếp đáng tin cậy — chỉ tải về.
+const VIEWABLE_MIMETYPES = [
+  "application/pdf",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document", // .docx
+];
+
+// GET /api/resources/:id/view → Xem trực tiếp trên trình duyệt (không tải về) — công khai
 exports.viewResource = async (req, res) => {
   try {
     const resource = await Resource.findById(req.params.id);
@@ -128,10 +159,11 @@ exports.viewResource = async (req, res) => {
       });
     }
 
-    if (resource.mimeType !== "application/pdf") {
+    if (!VIEWABLE_MIMETYPES.includes(resource.mimeType)) {
       return errorResponse({
         res,
-        message: "Chỉ có thể xem trực tiếp file PDF",
+        message:
+          "Định dạng này chưa hỗ trợ xem trực tiếp, vui lòng tải về để xem",
         status: 400,
       });
     }
@@ -144,8 +176,9 @@ exports.viewResource = async (req, res) => {
       });
     }
 
-    // "inline" thay vì "attachment" để trình duyệt render PDF thay vì tải xuống
-    res.setHeader("Content-Type", "application/pdf");
+    // "inline" thay vì "attachment" để trình duyệt/JS đọc trực tiếp nội dung
+    // thay vì ép tải xuống
+    res.setHeader("Content-Type", resource.mimeType);
     res.setHeader(
       "Content-Disposition",
       `inline; filename="${encodeURIComponent(resource.fileName)}"`
